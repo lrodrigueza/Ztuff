@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Zephyr Ztuff"
+  description="My Gadget Is Awesome" 
+  author="God" 
+  author_email="god@illumina.com">
+    <Optional feature="gadget-directory">
+      <Param name="categories">Confluence</Param>
+    </Optional>
+  </ModulePrefs>
+  <Content type="html">
+    <![CDATA[
+    Hello world!!! I HAVE ARRIVED
+    ]]>
+  </Content>
+</Module>
