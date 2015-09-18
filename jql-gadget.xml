@@ -3,14 +3,17 @@
   <ModulePrefs title="Zephyr Ztuff"
   description="My Gadget Is Awesome" 
   author="God" 
+  directory_title="JIRA Issues"
   author_email="god@illumina.com">
     <Optional feature="gadget-directory">
       <Param name="categories">Confluence</Param>
     </Optional>
+    <Require feature="minimessage" />
+    <Require feature="dynamic-height" />
   </ModulePrefs>
   <Content type="html">
     <![CDATA[
-    Hello world!!! I HAVE ARRIVED
-    ]]>
+    <strong>Hello, world!</strong>
+  ]]>
   </Content>
 </Module>
