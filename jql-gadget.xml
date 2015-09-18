@@ -5,14 +5,10 @@
     author="God" 
     directory_title="JIRA Issues"
     author_email="god@illumina.com">
-    <Optional feature="gadget-directory">
-      <Param name="categories">Confluence</Param>
-    </Optional>
-    <Require feature="dynamic-height" />
   </ModulePrefs>
   <Content type="html">
     <![CDATA[
-    <strong>Hello, world11!</strong>
+    Hello World!
   ]]>
   </Content>
 </Module>
