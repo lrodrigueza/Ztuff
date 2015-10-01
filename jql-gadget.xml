@@ -211,6 +211,30 @@
      
     };
     </script>
+    
+    <div>
+	    <label >Please select project: * </label>
+	    <select id=projectName onchange="setTestVersionType('#testVisionType','#projectName')">
+      </select>
+	    <script>setProjectOption('#projectName')</script>
+    </div>
+    <div>
+	    <label >Please select test version type: * </label>
+	    <select id=testVisionType onchange="setTestVersion('#testVision','#testVisionType')"></select>
+    </div>
+    <div>
+      <label >Please select test version: * </label>
+	    <select id=testVision onChange="setTestCycle('#testCycle','#testVision','#projectName')"></select>
+    </div>
+    <div>
+      <label >Please select test cycle: * </label>
+	    <select id=testCycle ></select>
+    </div>
+    <input type="button" value="Generate Test Execution" onclick="setExecutionTableContent('#testCycle','#tableId','#projectName')">
+    <input type="button" value="clear execution table" onclick="clearContent('#tableId')">
+    <input type="button" value="Generate Test Execution with test step" onclick="setExecutionTableContentWithTestSetp('#testCycle','#tableId','#projectName')">
+    <div id="tableId" class="align-center"></div> 
+    
   ]]>
   </Content>
 </Module>
