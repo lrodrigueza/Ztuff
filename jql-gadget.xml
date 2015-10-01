@@ -8,12 +8,209 @@
   </ModulePrefs>
   <Content type="html">
     <![CDATA[
-    <div style="text-align:center"><a
-      id="Riggs" title="My Photo Album" target="_blank"
-      href="http://picasaweb.google.com/doc.examples/ShelfBoy">
-      <img border="0" alt="Photo" src="http://doc.examples.googlepages.com/Riggsie-OP.jpg" 
-      title="Click Here."></a>
-    </div>
+     <script type="text/javascript">
+    $ = AJS.$;
+    var executionColumnNames = {"id":"ExecutionId","cycleName":"CycleName","issueKey":"IssueKey","summary":"Test Summary","projectKey":"Project","versionName":"Version Name","executedByDisplay":"Executed By","executedOn":"Executed On","executionStatus":"Execution Status"};
+    var executionWithTestStepColumnNames = $.extend({}, executionColumnNames);
+    executionWithTestStepColumnNames['stepResult']={"orderId":"Step Number","htmlStep":"Step","htmlData":"Data","htmlResult":"Expected Result", "status":"Step Execution Status"};
+     
+    function setExecutionContent(response,tableElementId,isWithStep)
+    {
+      var table = $('<table border="1px solid black">').addClass('align-center'); 
+     
+        var row=$('<tr style="background-color:lightblue" align="center">');
+      isWithStep = typeof isWithStep ==='undefined'? false:isWithStep;
+      var columnNames = isWithStep === true ? executionWithTestStepColumnNames :executionColumnNames;
+     
+        $.each(columnNames,function(key,val){
+        if(key==='stepResult'){
+          $.each(val,function(stepKey,stepValue){
+            row.append($('<th>').text(stepValue));
+          });
+        }else{
+            row.append($('<th>').text(val));
+        }
+        });
+       
+        table.append(row);
+      var stepIndex=0, row,rowSpanNum;
+        var tempTestStepResult;
+      var tempTestStepStatus;
+        $.each(response.executions, function(key, val) {
+            
+        stepIndex=0;
+        if(response.status[val.executionStatus].name === "PASS"){
+        row=$('<tr style="background-color:lightgreen" align="center"></tr>');
+        }else{
+        row=$('<tr style="background-color:red" align="center"></tr>');
+          }
+        
+        if(isWithStep === true){
+        tempTestStepResult = getTestStepResultsByExecutionIssueId(val.issueId);
+        tempTestStepStatus = getTestStepStatus(val.id);
+          rowSpanNum = tempTestStepResult.length < 1?1:tempTestStepResult.length;
+          }else{
+        rowSpanNum =1;
+          }
+        $.each(columnNames,function(columnKey,columnName){
+            var executionValue = val[columnKey];
+        if(columnKey==="executionStatus"){
+          row.append($('<td rowspan="'+rowSpanNum+'">').text(response.status[executionValue].name));
+        }else if(columnKey === 'stepResult'){
+          $.each(tempTestStepResult,function(stepIndex,StepObject){
+            $.each(columnName,function(stepKey,stepValue){
+              if(stepKey==='status'){
+                var stepStatus = tempTestStepStatus.filter(function(stepStatusObject){
+                    return stepStatusObject.stepId === StepObject.id
+                })
+                if(stepStatus.length > 0){
+                  var statusId = stepStatus[0].status
+                  row.append($('<td>').text(response.status[statusId].name));
+                  }else{
+                  row.append($('<td>').text("UNEXECUTED"));
+                  } 
+              }else{
+                row.append($('<td>').text(StepObject[stepKey]));
+              }
+            });
+            table.append(row);
+            row = ($('<tr align="center">'));
+          });
+        }else{
+          row.append($('<td rowspan="'+rowSpanNum+'">').text(executionValue));
+        }
+          });
+          table.append(row);
+        });
+     
+       $(tableElementId).append(table);
+    };
+    function setTestStepTableContent(){
+        var tableContent = '<table id=testStepId></table>';
+        
+    }
+    function createRow(rowData){
+      return '<td style="text-align:center">'+rowData+'</td>';
+    };
+     
+    function createHeader(columnName){
+      return '<th style="text-align:center">'+columnName+'</th>';
+    };
+    function createOption(val, label){
+      return '<option value="'+val +'">'+label+'</option>';
+    }
+    function setOption(response,elementId){
+      
+        $(createOption("defultValue","Please select")).appendTo(elementId);
+      $.each(response, function(key,val){
+            $(createOption(val.value,val.label)).appendTo(elementId);
+        });
+    };
+     
+    function getRequest(urlRoute,dataParam){
+      var apiUrl = "https://jira.illumina.com/rest/zapi/latest/"+urlRoute;
+      dataParam = typeof dataParam === 'undefined'? '':dataParam;
+      var result;
+      $.support.cors = true;
+      $.ajax
+      ({
+          type: "GET",
+          url: apiUrl,
+          dataType: 'json',
+          async: false,
+        xhrFields: {
+            "withCredentials": false
+          },
+          headers: {
+            "Authorization": "Basic " + btoa("svc_hadeansteuser1" + ":" + "YpcpCH5sR$#@!"),
+          "Access-Control-Allow-Credentials": "true",
+          "Origin": "https://confluence.illumina.com"
+          },
+          data: dataParam,
+          success: function (response){
+            result = response;
+          },
+        error: function (xhr, errorType, exception) {
+                var errorMessage = exception || xhr.statusText;
+                alert(errorMessage);
+            console.error(exception);
+          }
+      }); 
+      return result;
+    };
+    function getCycleExecution(cycleId,projectID){
+        return getRequest('execution','cycleId='+cycleId + '&project='+projectID);
+    };
+    function getTestStepResultsByExecutionIssueId(issueId){
+      return getRequest('teststep/'+issueId);
+    }
+     
+    function getTestStepStatus(executionId){
+       return getRequest('stepResult', 'executionId='+executionId);
+    }
+    function setExecutionTableContent(cycleElementId,tableElementId,projectNameElementId){
+      var cycleId = $(cycleElementId).val();
+      var projectId = $(projectNameElementId).val();
+        clearContent(tableElementId);
+        var response = getCycleExecution(cycleId,projectId);
+        setExecutionContent(response,tableElementId);
+    };
+     
+    function setExecutionTableContentWithTestSetp(cycleElementId,tableElementId,projectNameElementId){
+      var cycleId = $(cycleElementId).val();
+      var projectId = $(projectNameElementId).val();
+        clearContent(tableElementId);
+        var response = getCycleExecution(cycleId,projectId);
+        setExecutionContent(response,tableElementId,true);  
+    };
+     
+    function clearContent(elementId){
+      $(elementId).empty();
+    };
+    function getProject(){
+      return getRequest('util/project-list');
+    };
+     
+    function setProjectOption(projectNameElementId){
+      var response = getProject();
+      setOption(response.options,projectNameElementId);
+    }
+    var testVersionResponse;
+     
+    function getTestVersionType(projectId){
+        return  getRequest('util/versionBoard-list','projectId='+projectId);
+    };
+     
+    function setTestVersionType(versionTypeElementId,projectNameElementId){
+      var projectId = $(projectNameElementId).val();
+        clearContent(versionTypeElementId);
+        testVersionResponse = getTestVersionType(projectId);
+        $(createOption("defaultValue","Please select a version")).appendTo(versionTypeElementId);
+        $.each(testVersionResponse, function(key,val){
+        $(createOption(key,key)).appendTo(versionTypeElementId);
+        })
+    }
+     
+    function setTestVersion(testVersionElementId,versionTypeElementId){
+      var testVisionType = $(versionTypeElementId).val();
+      clearContent(testVersionElementId);
+      setOption(testVersionResponse[testVisionType],testVersionElementId);
+    };
+    function getTestCycle(versionId,projectId){
+        return getRequest('cycle','versionId='+versionId+'&projectId='+projectId);
+    };
+    function setTestCycle(testCycleElementId,testVersionElementId,projectNameElementId){
+        var versionId = $(testVersionElementId).val();
+      var projectId = $(projectNameElementId).val();
+        var response = getTestCycle(versionId,projectId);
+        clearContent(testCycleElementId);
+        $(createOption("defaultValue","Please select a version")).appendTo(testCycleElementId);
+        $.each(response, function(key,val){
+            $(createOption(key,val.name)).appendTo(testCycleElementId);
+        });
+     
+    };
+    </script>
   ]]>
   </Content>
 </Module>
